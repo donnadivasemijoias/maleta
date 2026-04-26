@@ -166,11 +166,48 @@ function calcular() {
   });
 }
 
-function toggleRow(i) {
+// ── Auto-save no localStorage ───────────────────────────────────────────────
+// Chave = hash da URL = único por maleta
+const SAVE_KEY = 'maleta_' + location.hash.substring(1, 20);
+
+function salvarEstado() {
+  const state = {};
+  ITEMS.forEach((_,i) => {
+    const chk = document.getElementById('chk_'+i);
+    const cli = document.getElementById('cli_'+i);
+    state['chk_'+i] = chk ? chk.checked : false;
+    state['cli_'+i] = cli ? cli.value   : '';
+  });
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); } catch(e) {}
+}
+
+function restaurarEstado() {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return false;
+    const state = JSON.parse(raw);
+    let restaurou = false;
+    Object.entries(state).forEach(([k,v]) => {
+      const el = document.getElementById(k);
+      if (!el) return;
+      if (el.type === 'checkbox') { el.checked = v; toggleRowSilente(parseInt(k.split('_')[1])); }
+      else el.value = v;
+      if (v) restaurou = true;
+    });
+    return restaurou;
+  } catch(e) { return false; }
+}
+
+function toggleRowSilente(i) {
   const row = document.getElementById('row_'+i);
   const chk = document.getElementById('chk_'+i);
   if(row) row.classList.toggle('vendida', chk.checked);
+}
+
+function toggleRow(i) {
+  toggleRowSilente(i);
   calcular();
+  salvarEstado();
 }
 
 // ── Enviar resumo ────────────────────────────────────────────────────────────
@@ -209,6 +246,19 @@ function enviarWA() {
   } else {
     window.open(url,'_blank');
   }
+}
+
+function limparEstado() {
+  if (!confirm('Apagar todas as marcações e nomes digitados?')) return;
+  try { localStorage.removeItem(SAVE_KEY); } catch(e) {}
+  ITEMS.forEach((_,i) => {
+    const chk = document.getElementById('chk_'+i);
+    const cli = document.getElementById('cli_'+i);
+    if(chk) { chk.checked = false; toggleRowSilente(i); }
+    if(cli)   cli.value = '';
+  });
+  calcular();
+  showFlash('Marcações apagadas', 2000);
 }
 
 function showFlash(msg, dur) {
@@ -250,7 +300,7 @@ function renderApp(data) {
       <td style="font-size:11px">${item.d||'—'}</td>
       <td class="c" style="font-size:10px;color:#888">${item.b||''}</td>
       <td class="r price">${brl(item.p)}</td>
-      <td><input class="cli-input" type="text" id="cli_${i}" placeholder="Cliente..." style="font-size:14px"></td>
+      <td><input class="cli-input" type="text" id="cli_${i}" placeholder="Cliente..." style="font-size:14px" oninput="salvarEstado()"></td>
     </tr>`).join('');
 
   const rev = data.r || 'Revendedora';
@@ -273,6 +323,7 @@ function renderApp(data) {
     <div class="actions">
       <button class="btn btn-wa" onclick="enviarWA()">&#9993; Enviar resumo por WhatsApp</button>
       <button class="btn btn-print" onclick="window.print()">&#128438; Imprimir / PDF</button>
+      <button class="btn" style="background:#fff;color:#7B2D4E;border:1.5px solid #7B2D4E" onclick="limparEstado()">&#x21BA; Recomeçar</button>
     </div>
 
     <div class="com-box">
@@ -298,7 +349,15 @@ function renderApp(data) {
 
   // Prevenir zoom em inputs no iOS
   document.querySelectorAll('input').forEach(el => { el.style.fontSize='16px'; });
+
+  // Restaurar estado salvo (se existir)
+  const restaurou = restaurarEstado();
   calcular();
+
+  // Indicar se havia estado salvo
+  if (restaurou) {
+    showFlash('✅ Continuando de onde você parou', 3000);
+  }
 }
 
 // ── Bootstrap ─────────────────────────────────────────────────────────────────

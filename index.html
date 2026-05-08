@@ -1,398 +1,43 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="format-detection" content="telephone=no">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Maleta — Donna Diva Semijoias</title>
+<script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
 <style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#1a1a1a;background:#f8f0f4;min-height:100vh}
-
-/* ── Topbar ── */
-.topbar{position:sticky;top:0;z-index:100;background:#7B2D4E;color:#fff;
-  padding:10px 16px;display:flex;align-items:center;gap:10px;
-  box-shadow:0 2px 8px rgba(0,0,0,.25)}
-.topbar h1{font-size:13px;font-weight:700;flex:1;line-height:1.3}
-.topbar .num{font-size:11px;opacity:.8;white-space:nowrap}
-
-/* ── Resumo fixo ── */
-.resumo{background:#fff;border-bottom:2px solid #f0d8e3;padding:10px 14px;
-  display:flex;gap:8px;flex-wrap:wrap;
-  position:sticky;top:58px;z-index:99;box-shadow:0 2px 6px rgba(0,0,0,.08)}
-.rb{flex:1;min-width:72px;text-align:center;background:#f8f0f4;
-  border-radius:8px;padding:8px 6px;border-top:3px solid #7B2D4E}
-.rb .lb{font-size:9px;color:#888;text-transform:uppercase;letter-spacing:.3px}
-.rb .vl{font-size:15px;font-weight:700;color:#7B2D4E;margin-top:2px}
-.rb.com{border-top-color:#2e7d32;background:#f0f7f0}
-.rb.com .vl{color:#2e7d32}
-
-/* ── Botões ── */
-.actions{padding:10px 14px;display:flex;gap:8px;flex-wrap:wrap}
-.btn{padding:9px 14px;border-radius:20px;border:none;cursor:pointer;
-  font-size:12px;font-weight:700;letter-spacing:.3px;
-  display:flex;align-items:center;gap:6px;touch-action:manipulation}
-.btn-wa{background:#25D366;color:#fff}
-.btn-print{background:#7B2D4E;color:#fff}
-.btn:active{opacity:.85;transform:scale(.97)}
-
-/* ── Comissões ── */
-.com-box{margin:0 12px 8px;background:#fff;border:1px solid #ddd;
-  border-radius:8px;padding:10px 14px}
-.com-box h3{font-size:10px;color:#888;text-transform:uppercase;letter-spacing:.3px;margin-bottom:6px}
-.faixas{display:flex;gap:6px;flex-wrap:wrap}
-.faixa{flex:1;min-width:60px;padding:6px 6px;border-radius:6px;
-  background:#f8f0f4;border:1px solid #e8c8d8;font-size:10px;text-align:center;transition:all .2s}
-.faixa.ativa{background:#7B2D4E;color:#fff;border-color:#7B2D4E;font-weight:700}
-.faixa .pct{font-size:13px;font-weight:700;display:block}
-
-/* ── Tabela ── */
-.wrap{padding:0 12px 24px}
-.items-lb{font-size:10px;font-weight:700;color:#7B2D4E;text-transform:uppercase;
-  letter-spacing:.4px;padding:10px 4px 4px}
-
-table.it{width:100%;border-collapse:collapse;font-size:12px;
-  background:#fff;border-radius:8px;overflow:hidden}
-table.it thead tr{background:#7B2D4E;color:#fff}
-table.it thead th{padding:8px 5px;text-align:left;font-size:9px;font-weight:700;
-  text-transform:uppercase;letter-spacing:.3px;white-space:nowrap}
-table.it thead th.c{text-align:center}
-table.it thead th.r{text-align:right}
-table.it tbody tr{border-bottom:.5px solid #f0d8e3;transition:background .15s}
-table.it tbody tr:nth-child(even){background:#fdf5f8}
-table.it tbody tr.vendida{background:#e8f5e9!important}
-table.it tbody td{padding:7px 5px;vertical-align:middle}
-table.it tbody td.code{font-family:'Courier New',monospace;font-size:10px;color:#555}
-table.it tbody td.c{text-align:center}
-table.it tbody td.r{text-align:right}
-table.it tbody td.price{color:#777;font-size:11px}
-table.it tbody td.total{font-weight:700;color:#7B2D4E;font-size:11px}
-
-/* ── Checkbox ── */
-.chk-wrap{display:flex;align-items:center;justify-content:center}
-input[type=checkbox]{width:22px;height:22px;accent-color:#7B2D4E;cursor:pointer;
-  -webkit-appearance:checkbox;appearance:checkbox}
-
-/* ── Input cliente ── */
-.cli-input{width:100%;border:none;border-bottom:1px solid #ddd;
-  font-size:14px;color:#1a1a1a;background:transparent;
-  padding:2px 0;outline:none;min-width:0}
-.cli-input:focus{border-bottom-color:#7B2D4E}
-.cli-input::placeholder{color:#bbb;font-style:italic}
-
-/* ── Flash ── */
-#flash{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
-  background:#2e7d32;color:#fff;padding:10px 18px;border-radius:20px;
-  font-size:12px;font-weight:700;opacity:0;transition:opacity .4s;
-  pointer-events:none;white-space:nowrap;z-index:200;max-width:90vw;text-align:center}
-#flash.show{opacity:1}
-
-/* ── Erro ── */
-.erro-box{margin:40px auto;max-width:400px;padding:30px;text-align:center;
-  background:#fff;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.1)}
-.erro-box h2{color:#b83232;margin-bottom:10px}
-.erro-box p{color:#666;font-size:13px}
-
-@media(max-width:480px){
-  .topbar h1{font-size:11px}
-  table.it{font-size:11px}
-  .rb .vl{font-size:13px}
-}
-@media print{
-  .topbar,.resumo,.actions,.com-box,#flash{display:none!important}
-  body{background:#fff}
-  table.it tbody tr.vendida{background:#e8f5e9!important;-webkit-print-color-adjust:exact}
-  input{border:none!important}
-}
+:root{--dd:#7B2D4E;--soft:#f8f0f4;--line:#f0d8e3;--green:#2e7d32}
+*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#1a1a1a;background:var(--soft);min-height:100vh}.topbar{position:sticky;top:0;z-index:100;background:var(--dd);color:#fff;padding:10px 16px;display:flex;align-items:center;gap:12px;box-shadow:0 2px 8px #0004}.topbar h1{font-size:13px;font-weight:700;flex:1;line-height:1.3}.topbar .num{font-size:11px;opacity:.9;white-space:nowrap}.resumo{background:#fff;border-bottom:2px solid var(--line);padding:10px 16px;display:flex;gap:10px;flex-wrap:wrap;position:sticky;top:48px;z-index:99;box-shadow:0 2px 6px #0001}.rb{flex:1;min-width:80px;text-align:center;background:var(--soft);border-radius:8px;padding:8px 10px;border-top:3px solid var(--dd)}.rb .lb{font-size:9px;color:#888;text-transform:uppercase;letter-spacing:.3px}.rb .vl{font-size:15px;font-weight:700;color:var(--dd);margin-top:2px}.rb.com{border-top-color:var(--green);background:#f0f7f0}.rb.com .vl{color:var(--green)}.actions{padding:10px 16px;display:flex;gap:8px;flex-wrap:wrap}.btn{padding:9px 16px;border-radius:20px;border:none;cursor:pointer;font-size:12px;font-weight:700;letter-spacing:.3px;display:flex;align-items:center;gap:6px}.btn-wa{background:#25D366;color:#fff}.btn-print{background:var(--dd);color:#fff}.btn-restart{background:#fff;color:var(--dd);border:1.5px solid var(--dd)}.com-info{margin:0 12px 8px;background:#fff;border:1px solid #ddd;border-radius:8px;padding:10px 14px;font-size:11px}.com-info h3{font-size:10px;color:#888;text-transform:uppercase;letter-spacing:.3px;margin-bottom:6px}.faixas{display:flex;gap:8px;flex-wrap:wrap}.faixa{flex:1;min-width:70px;padding:6px 8px;border-radius:6px;background:var(--soft);border:1px solid #e8c8d8;font-size:10px;text-align:center}.faixa.ativa{background:var(--dd);color:#fff;border-color:var(--dd);font-weight:700}.faixa .pct{font-size:14px;font-weight:700;display:block}.wrap{padding:0 12px 24px}.items-lb{font-size:10px;font-weight:700;color:var(--dd);text-transform:uppercase;letter-spacing:.4px;padding:10px 4px 4px}table.it{width:100%;border-collapse:collapse;font-size:12px;background:#fff;border-radius:8px;overflow:hidden;table-layout:fixed}table.it thead tr{background:var(--dd);color:#fff}table.it thead th{padding:8px 6px;text-align:left;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;white-space:nowrap}table.it thead th.c{text-align:center}table.it thead th.r{text-align:right}table.it tbody tr{border-bottom:.5px solid var(--line)}table.it tbody tr:nth-child(even){background:#fdf5f8}table.it tbody tr.vendida{background:#e8f5e9!important}table.it tbody td{padding:6px 5px;vertical-align:middle;overflow:hidden}td.c{text-align:center}td.r{text-align:right}td.row-num{color:#aaa;font-size:10px}td.code{font-family:'Courier New',monospace;font-size:10px;color:#555;white-space:nowrap}td.prod{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:1px;font-size:11px;color:#222}td.banho{font-size:10px;white-space:nowrap}td.total{font-weight:700;color:var(--dd);font-size:11px}.chk-wrap{display:flex;align-items:center;justify-content:center}input[type=checkbox]{width:20px;height:20px;accent-color:var(--dd);cursor:pointer}.paid-check{width:18px;height:18px}.cli-input{width:100%;border:none;border-bottom:1px solid #ddd;font-size:13px;color:#1a1a1a;background:#fffdfd;padding:4px 3px;outline:none;border-radius:4px}.cli-input:focus{border-bottom-color:var(--dd)}.cli-input::placeholder{color:#bbb;font-style:italic}.pay-select{width:100%;border:1px solid #ddd;border-radius:6px;background:#fff;padding:4px 3px;font-size:11px;outline:none}.pay-select:focus{border-color:var(--dd)}#flash{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--green);color:#fff;padding:10px 20px;border-radius:20px;font-size:12px;font-weight:700;opacity:0;transition:opacity .4s;pointer-events:none;white-space:nowrap;z-index:200}.show{opacity:1!important}.err{margin:30px auto;max-width:760px;background:#fff;border:1px solid #e2b8c9;border-radius:12px;padding:18px;color:#6d2444}.err h2{font-size:18px;margin-bottom:8px}@media(max-width:700px){.topbar{align-items:flex-start}.topbar h1{font-size:12px}.topbar .num{font-size:10px}.resumo{top:52px}.hide-sm{display:none}.wrap{padding:0 6px 20px}table.it{font-size:11px}table.it thead th{padding:7px 4px;font-size:8px}table.it tbody td{padding:6px 4px}.rb .vl{font-size:13px}th.prod-col{width:26%!important}th.cli-col{width:24%!important}th.pay-col{width:78px!important}.cli-input{font-size:12px;padding:4px 2px}.pay-select{font-size:10px;padding:4px 1px}}@media print{.topbar,.resumo,.actions,.com-info,#flash{display:none!important}body{background:#fff}table.it tbody tr.vendida{background:#e8f5e9!important;-webkit-print-color-adjust:exact}input,select{border:none!important}}
 </style>
 </head>
 <body>
-
-<div id="app">
-  <div style="padding:60px;text-align:center;color:#888">Carregando maleta...</div>
-</div>
-<div id="flash"></div>
-
+<div id="app"><div class="err"><h2>Carregando maleta...</h2><p>Se a tela não carregar, atualize a página.</p></div></div><div id="flash"></div>
 <script>
-// ── Descompressão via DecompressionStream (nativa, sem libs) ─────────────────
-async function decompress(b64) {
-  const bin = atob(b64.replace(/-/g,'+').replace(/_/g,'/'));
-  const buf = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; i++) buf[i] = bin.charCodeAt(i);
-  const ds  = new DecompressionStream('deflate');
-  const w   = new WritableStream();
-  const chunks = [];
-  const out = new WritableStream({ write(chunk){ chunks.push(chunk); } });
-  const src = new ReadableStream({ start(c){ c.enqueue(buf); c.close(); } });
-  await src.pipeThrough(new DecompressionStream('deflate')).pipeTo(out);
-  const all = new Uint8Array(chunks.reduce((a,b)=>a+b.length,0));
-  let pos = 0;
-  for (const c of chunks){ all.set(c,pos); pos+=c.length; }
-  return new TextDecoder().decode(all);
-}
+const COMISSOES=[[0,350,0.10],[350,650,0.20],[650,1000,0.25],[1000,1e18,0.30]];
+let PAYLOAD=null, ITEMS=[], TOTAL_PECAS=0;
+function b64urlToBytes(s){s=s.replace(/^#/,'').replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';const bin=atob(s);const out=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)out[i]=bin.charCodeAt(i);return out}
+function decodePayload(){const h=location.hash.replace(/^#/,'');if(!h)throw new Error('Link sem dados da maleta.');const bytes=b64urlToBytes(h);let json;if(window.pako){json=pako.inflate(bytes,{to:'string'});}else{throw new Error('Biblioteca de descompactação não carregou.');}return JSON.parse(json)}
+function codigoVisual(c){c=String(c||'').trim().toUpperCase();let m=c.match(/SJ[A-Z]*\s*-?\s*(\d{3,6})(?:\s*-\s*(\d+))?/);if(m)return m[1]+(m[2]?'-'+m[2]:'');m=c.match(/(\d{3,6})(?:\s*-\s*(\d+))?/);return m?m[1]+(m[2]?'-'+m[2]:''):String(c||'')}
+function ordemCodigo(c){const v=codigoVisual(c);const m=v.match(/^(\d+)(?:-(\d+))?/);return m?[parseInt(m[1]),parseInt(m[2]||'0'),v]:[999999999,999999999,v]}
+function banhoItem(it){const b=String(it.b||it.banho||'').toLowerCase();if(b.includes('ouro'))return'Ouro';if(b.includes('prata'))return'Prata';if(b.includes('inox'))return'Inox';const c=String(it.c||it.codigo||'').toUpperCase();if(c.startsWith('O-'))return'Ouro';if(c.startsWith('P-'))return'Prata';if(c.startsWith('I-'))return'Inox';const d=String(it.d||it.descricao||'').toLowerCase();if(d.includes('ouro')||d.includes('dourad'))return'Ouro';if(d.includes('prata')||d.includes('pratead'))return'Prata';if(d.includes('inox')||d.includes('aço')||d.includes('aco'))return'Inox';return'—'}
+function brl(v){return'R$ '+Number(v||0).toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.')}
+function getPct(valor){for(const[lo,hi,pct]of COMISSOES){if(valor>=lo&&valor<hi)return pct}return COMISSOES[COMISSOES.length-1][2]}
+function showFlash(msg,dur){const f=document.getElementById('flash');f.textContent=msg;f.classList.add('show');setTimeout(()=>f.classList.remove('show'),dur||3000)}
+function normalizeItems(raw){const arr=(raw.i||raw.items||[]).map((it,idx)=>({codigo:codigoVisual(it.c||it.codigo||''),descricao:it.d||it.descricao||'—',banho:banhoItem(it),qtd:Number(it.q||it.qtd||1),preco:Number(it.p||it.preco||0),lote_sige:it.s||it.lote_sige||'',lote_data:it.sd||it.lote_data||'',_idx:idx}));arr.sort((a,b)=>{const A=ordemCodigo(a.codigo),B=ordemCodigo(b.codigo);return A[0]-B[0]||A[1]-B[1]||String(A[2]).localeCompare(B[2])});return arr}
+function render(){PAYLOAD=decodePayload();ITEMS=normalizeItems(PAYLOAD);TOTAL_PECAS=ITEMS.reduce((s,it)=>s+it.qtd,0)||ITEMS.length;const rev=PAYLOAD.r||PAYLOAD.revendedora||'';const num=PAYLOAD.n||'Pendente';const data=PAYLOAD.d||'';const rows=ITEMS.map((it,i)=>`<tr id="row_${i}"><td class="c row-num">${i+1}</td><td class="c"><div class="chk-wrap"><input type="checkbox" id="chk_${i}" onchange="toggleRow(${i});saveState()"></div></td><td class="code">${it.codigo}</td><td class="prod" title="${escapeHtml(it.descricao)}">${escapeHtml(it.descricao)}</td><td class="c banho">${it.banho}</td><td class="r total">${brl(it.preco*it.qtd)}</td><td><input class="cli-input" id="cli_${i}" placeholder="Nome da cliente..." oninput="saveState()"></td><td><select class="pay-select" id="pay_${i}" onchange="saveState()"><option value="">Forma...</option><option>Pix</option><option>Dinheiro</option><option>Débito</option><option>Crédito</option><option>Link</option><option>Outro</option></select></td><td class="c"><input class="paid-check" type="checkbox" id="paid_${i}" title="Pago" onchange="saveState()"></td></tr>`).join('');document.getElementById('app').innerHTML=`<div class="topbar"><h1>Donna Diva Semijoias<br>${escapeHtml(rev)}</h1><span class="num">Rom. nº ${escapeHtml(num)} | ${escapeHtml(data)}</span></div><div class="resumo"><div class="rb"><div class="lb">Peças enviadas</div><div class="vl" id="s-total">${TOTAL_PECAS}</div></div><div class="rb"><div class="lb">Peças vendidas</div><div class="vl" id="s-vend">0</div></div><div class="rb"><div class="lb">Valor vendido</div><div class="vl" id="s-valor">R$ 0,00</div></div><div class="rb"><div class="lb">% da maleta</div><div class="vl" id="s-pct">0%</div></div><div class="rb com"><div class="lb">Sua comissão</div><div class="vl" id="s-com">R$ 0,00</div></div></div><div class="actions"><button class="btn btn-wa" onclick="enviarWA()">✉ Enviar resumo por WhatsApp</button><button class="btn btn-print" onclick="window.print()">🖨 Imprimir / PDF</button><button class="btn btn-restart" onclick="recomecar()">↻ Recomeçar</button></div><div class="com-info"><h3>Tabela de comissões</h3><div class="faixas"><div class="faixa" id="f0"><span class="pct">10%</span>R$ 0 a R$ 350</div><div class="faixa" id="f1"><span class="pct">20%</span>R$ 350 a R$ 650</div><div class="faixa" id="f2"><span class="pct">25%</span>R$ 650 a R$ 1.000</div><div class="faixa" id="f3"><span class="pct">30%</span>acima de R$ 1.000</div></div></div><div class="wrap"><div class="items-lb">Peças da maleta — marque as que foram vendidas</div><table class="it"><thead><tr><th class="c" style="width:28px">Nº</th><th class="c" style="width:42px">Vend.</th><th style="width:68px">Código</th><th class="prod-col" style="width:30%">Produto</th><th class="c" style="width:48px">Banho</th><th class="r" style="width:58px">Valor</th><th class="cli-col" style="width:26%">Cliente</th><th class="pay-col" style="width:100px">Pagamento</th><th class="c" style="width:48px">Pago</th></tr></thead><tbody>${rows}</tbody></table></div>`;calcular()}
+function escapeHtml(s){return String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
+function toggleRow(i){const row=document.getElementById('row_'+i),chk=document.getElementById('chk_'+i);if(row&&chk)row.classList.toggle('vendida',chk.checked);calcular()}
+function calcular(){let vendidas=0,valor=0;ITEMS.forEach((it,i)=>{if(document.getElementById('chk_'+i)?.checked){vendidas+=it.qtd;valor+=it.preco*it.qtd}});const pct=getPct(valor),pctMaleta=TOTAL_PECAS?Math.round(vendidas/TOTAL_PECAS*100):0;document.getElementById('s-vend').textContent=vendidas;document.getElementById('s-valor').textContent=brl(valor);document.getElementById('s-pct').textContent=pctMaleta+'%';document.getElementById('s-com').textContent=brl(valor*pct);COMISSOES.forEach(([lo,hi],j)=>document.getElementById('f'+j)?.classList.toggle('ativa',valor>=lo&&valor<hi))}
+function buildMsg(){let vendidas=0,valor=0,linhas=[];ITEMS.forEach((it,i)=>{if(document.getElementById('chk_'+i)?.checked){vendidas+=it.qtd;valor+=it.preco*it.qtd;const cli=document.getElementById('cli_'+i)?.value||'';const pay=document.getElementById('pay_'+i)?.value||'';const paid=document.getElementById('paid_'+i)?.checked?'Sim':'Não';linhas.push(`✅ ${it.codigo} | ${it.descricao} | ${brl(it.preco*it.qtd)}${cli?' | Cliente: '+cli:''}${pay?' | Pagamento: '+pay:''} | Pago: ${paid}`)}});const pct=getPct(valor),pctMaleta=TOTAL_PECAS?Math.round(vendidas/TOTAL_PECAS*100):0;return [`*Donna Diva Semijoias — Resumo de Vendas*`,`Revendedora: ${PAYLOAD.r||''}`,`Romaneio: ${PAYLOAD.n||'Pendente'} — ${PAYLOAD.d||''}`,'',linhas.length?'*Peças vendidas:*':'Nenhuma peça marcada como vendida.',...linhas,'',`Total vendido: ${brl(valor)} (${pctMaleta}% da maleta)`,`Comissão (${Math.round(pct*100)}%): *${brl(valor*pct)}*`].join('\n')}
+function enviarWA(){const msg=buildMsg();if(navigator.share){navigator.share({text:msg}).then(()=>showFlash('✅ Resumo compartilhado!')).catch(e=>{if(e.name!=='AbortError')abrirWA(msg)});return}abrirWA(msg)}
+function abrirWA(msg){window.open('https://wa.me/'+(PAYLOAD.w||'')+'?text='+encodeURIComponent(msg),'_blank');showFlash('Abrindo WhatsApp...')}
+function stateKey(){return 'dd_maleta_interativa_v2:'+location.hash.slice(0,80)}
+function collectState(){const st={};ITEMS.forEach((_,i)=>{const chk=document.getElementById('chk_'+i),cli=document.getElementById('cli_'+i),pay=document.getElementById('pay_'+i),paid=document.getElementById('paid_'+i);st['chk_'+i]=!!chk?.checked;st['cli_'+i]=cli?.value||'';st['pay_'+i]=pay?.value||'';st['paid_'+i]=!!paid?.checked});return st}
+function saveState(){try{localStorage.setItem(stateKey(),JSON.stringify({t:Date.now(),state:collectState()}))}catch(e){}}
+function restoreState(){try{const raw=localStorage.getItem(stateKey());if(!raw)return;const data=JSON.parse(raw);const st=data.state||{};Object.entries(st).forEach(([k,v])=>{const el=document.getElementById(k);if(!el)return;if(el.type==='checkbox')el.checked=!!v;else el.value=v||''});ITEMS.forEach((_,i)=>{const row=document.getElementById('row_'+i),chk=document.getElementById('chk_'+i);if(row&&chk)row.classList.toggle('vendida',chk.checked)});calcular();showFlash('✅ Continuei de onde parou',2200)}catch(e){}}
+function recomecar(){if(!confirm('Limpar marcações desta maleta neste aparelho?'))return;try{localStorage.removeItem(stateKey())}catch(e){}location.reload()}
 
-// ── Utilitários ──────────────────────────────────────────────────────────────
-function brl(v) {
-  return 'R$ ' + Number(v||0).toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\\d))/g,'.');
-}
-
-let ITEMS = [], FONE_LOJA = '', COMISSOES = [], TOTAL_PECAS = 0;
-
-// ── Calcular resumo ──────────────────────────────────────────────────────────
-function calcular() {
-  let vendidas = 0, valorVendido = 0;
-  ITEMS.forEach((_,i) => {
-    const chk = document.getElementById('chk_'+i);
-    if (chk && chk.checked) { vendidas++; valorVendido += ITEMS[i].p; }
-  });
-
-  let pct = COMISSOES.length ? COMISSOES[0][2] : 10;
-  let faixaAtiva = 0;
-  COMISSOES.forEach(([lo,hi,p],j) => {
-    if (valorVendido >= lo && valorVendido < hi) { pct = p; faixaAtiva = j; }
-  });
-
-  const el = id => document.getElementById(id);
-  if(el('s-vend'))  el('s-vend').textContent  = vendidas;
-  if(el('s-valor')) el('s-valor').textContent = brl(valorVendido);
-  if(el('s-pct'))   el('s-pct').textContent   = TOTAL_PECAS>0 ? Math.round(vendidas/TOTAL_PECAS*100)+'%' : '0%';
-  if(el('s-com'))   el('s-com').textContent   = brl(valorVendido * pct/100);
-
-  COMISSOES.forEach((_,j) => {
-    const f = document.getElementById('f'+j);
-    if(f) f.classList.toggle('ativa', j===faixaAtiva);
-  });
-}
-
-// ── Auto-save no localStorage ───────────────────────────────────────────────
-// Chave = hash da URL = único por maleta
-const SAVE_KEY = 'maleta_' + location.hash.substring(1, 20);
-
-function salvarEstado() {
-  const state = {};
-  ITEMS.forEach((_,i) => {
-    const chk = document.getElementById('chk_'+i);
-    const cli = document.getElementById('cli_'+i);
-    state['chk_'+i] = chk ? chk.checked : false;
-    state['cli_'+i] = cli ? cli.value   : '';
-  });
-  try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); } catch(e) {}
-}
-
-function restaurarEstado() {
-  try {
-    const raw = localStorage.getItem(SAVE_KEY);
-    if (!raw) return false;
-    const state = JSON.parse(raw);
-    let restaurou = false;
-    Object.entries(state).forEach(([k,v]) => {
-      const el = document.getElementById(k);
-      if (!el) return;
-      if (el.type === 'checkbox') { el.checked = v; toggleRowSilente(parseInt(k.split('_')[1])); }
-      else el.value = v;
-      if (v) restaurou = true;
-    });
-    return restaurou;
-  } catch(e) { return false; }
-}
-
-function toggleRowSilente(i) {
-  const row = document.getElementById('row_'+i);
-  const chk = document.getElementById('chk_'+i);
-  if(row) row.classList.toggle('vendida', chk.checked);
-}
-
-function toggleRow(i) {
-  toggleRowSilente(i);
-  calcular();
-  salvarEstado();
-}
-
-// ── Enviar resumo ────────────────────────────────────────────────────────────
-function enviarWA() {
-  let vendidas = 0, valorVendido = 0;
-  const linhas = [];
-  ITEMS.forEach((item,i) => {
-    const chk = document.getElementById('chk_'+i);
-    const cli = (document.getElementById('cli_'+i)||{}).value||'';
-    if(chk && chk.checked) {
-      vendidas++;
-      valorVendido += item.p;
-      linhas.push('✅ '+item.c+' | '+(item.d||'').substring(0,40)+' | '+brl(item.p)+(cli?' — Cliente: '+cli:''));
-    }
-  });
-
-  let pct = COMISSOES.length ? COMISSOES[0][2] : 10, faixaLabel = (COMISSOES[0]?.[2]||10)+'%';
-  COMISSOES.forEach(([lo,hi,p]) => { if(valorVendido>=lo && valorVendido<hi){ pct=p; faixaLabel=p+'%'; } });
-
-  const pctMaleta = TOTAL_PECAS>0 ? Math.round(vendidas/TOTAL_PECAS*100) : 0;
-  const rev = document.title.replace('Maleta — ','');
-  const msg = [
-    '*Donna Diva Semijoias — Resumo de Vendas*',
-    'Revendedora: '+rev,
-    '',
-    linhas.length ? '*Peças vendidas:*' : 'Nenhuma peça marcada como vendida.',
-    ...linhas,
-    '',
-    'Total vendido: '+brl(valorVendido)+' ('+pctMaleta+'% da maleta)',
-    'Comissão ('+faixaLabel+'): *'+brl(valorVendido*pct/100)+'*',
-  ].join('\n');
-
-  const url = 'https://wa.me/'+(FONE_LOJA||'')+'?text='+encodeURIComponent(msg);
-  if(navigator.share) {
-    navigator.share({text: msg}).catch(()=> window.open(url,'_blank'));
-  } else {
-    window.open(url,'_blank');
-  }
-}
-
-function limparEstado() {
-  if (!confirm('Apagar todas as marcações e nomes digitados?')) return;
-  try { localStorage.removeItem(SAVE_KEY); } catch(e) {}
-  ITEMS.forEach((_,i) => {
-    const chk = document.getElementById('chk_'+i);
-    const cli = document.getElementById('cli_'+i);
-    if(chk) { chk.checked = false; toggleRowSilente(i); }
-    if(cli)   cli.value = '';
-  });
-  calcular();
-  showFlash('Marcações apagadas', 2000);
-}
-
-function showFlash(msg, dur) {
-  const fl = document.getElementById('flash');
-  fl.textContent = msg;
-  fl.classList.add('show');
-  setTimeout(()=>fl.classList.remove('show'), dur||3000);
-}
-
-// ── Renderizar app ───────────────────────────────────────────────────────────
-function renderApp(data) {
-  ITEMS       = data.i || [];
-  FONE_LOJA   = data.w || '';
-  TOTAL_PECAS = ITEMS.length;
-  COMISSOES   = (data.c || [[0,350,10],[350,650,20],[650,1000,25],[1000,999999,30]])
-                .map(x => [x[0], x[1], x[2]]);
-
-  // Faixas label
-  const faixasLabels = COMISSOES.map(([lo,hi,p]) => {
-    const pctStr = p+'%';
-    const hiStr  = hi >= 999999 ? 'acima de R$ '+lo.toLocaleString('pt-BR') :
-                   'R$ '+lo.toLocaleString('pt-BR')+' a R$ '+hi.toLocaleString('pt-BR');
-    return `<div class="faixa" id="f${COMISSOES.indexOf(...[COMISSOES.find(x=>x[0]===lo)])||0}">
-      <span class="pct">${pctStr}</span>${hiStr}</div>`;
-  });
-  // Re-index
-  const faixasHtml = COMISSOES.map(([lo,hi,p],j) => {
-    const hiStr = hi >= 999999 ? 'acima de R$ '+Number(lo).toLocaleString('pt-BR') :
-                  'R$ '+Number(lo).toLocaleString('pt-BR')+' a R$\u00a0'+Number(hi).toLocaleString('pt-BR');
-    return `<div class="faixa" id="f${j}"><span class="pct">${p}%</span>${hiStr}</div>`;
-  }).join('');
-
-  // Linhas da tabela
-  const linhas = ITEMS.map((item,i) => `
-    <tr id="row_${i}">
-      <td class="c" style="color:#aaa;font-size:10px">${i+1}</td>
-      <td class="c"><div class="chk-wrap"><input type="checkbox" id="chk_${i}" onchange="toggleRow(${i})"></div></td>
-      <td class="code">${item.c||''}</td>
-      <td style="font-size:11px">${item.d||'—'}</td>
-      <td class="c" style="font-size:10px;color:#888">${item.b||''}</td>
-      <td class="r price">${brl(item.p)}</td>
-      <td><input class="cli-input" type="text" id="cli_${i}" placeholder="Cliente..." style="font-size:14px" oninput="salvarEstado()"></td>
-    </tr>`).join('');
-
-  const rev = data.r || 'Revendedora';
-  document.title = 'Maleta — '+rev;
-
-  document.getElementById('app').innerHTML = `
-    <div class="topbar">
-      <h1>Donna Diva Semijoias<br>${rev}</h1>
-      <span class="num">Rom. nº ${data.n||'—'} | ${data.d||''}</span>
-    </div>
-
-    <div class="resumo">
-      <div class="rb"><div class="lb">Peças enviadas</div><div class="vl">${TOTAL_PECAS}</div></div>
-      <div class="rb"><div class="lb">Peças vendidas</div><div class="vl" id="s-vend">0</div></div>
-      <div class="rb"><div class="lb">Valor vendido</div><div class="vl" id="s-valor">R$ 0,00</div></div>
-      <div class="rb"><div class="lb">% da maleta</div><div class="vl" id="s-pct">0%</div></div>
-      <div class="rb com"><div class="lb">Sua comissão</div><div class="vl" id="s-com">R$ 0,00</div></div>
-    </div>
-
-    <div class="actions">
-      <button class="btn btn-wa" onclick="enviarWA()">&#9993; Enviar resumo por WhatsApp</button>
-      <button class="btn btn-print" onclick="window.print()">&#128438; Imprimir / PDF</button>
-      <button class="btn" style="background:#fff;color:#7B2D4E;border:1.5px solid #7B2D4E" onclick="limparEstado()">&#x21BA; Recomeçar</button>
-    </div>
-
-    <div class="com-box">
-      <h3>Tabela de comissões</h3>
-      <div class="faixas">${faixasHtml}</div>
-    </div>
-
-    <div class="wrap">
-      <div class="items-lb">Peças da maleta — marque as que foram vendidas</div>
-      <table class="it">
-        <thead><tr>
-          <th class="c" style="width:26px">Nº</th>
-          <th class="c" style="width:36px">Vend.</th>
-          <th style="width:60px">Código</th>
-          <th>Produto</th>
-          <th class="c" style="width:40px">Banho</th>
-          <th class="r" style="width:60px">Valor</th>
-          <th style="width:90px">Cliente</th>
-        </tr></thead>
-        <tbody>${linhas}</tbody>
-      </table>
-    </div>`;
-
-  // Prevenir zoom em inputs no iOS
-  document.querySelectorAll('input').forEach(el => { el.style.fontSize='16px'; });
-
-  // Restaurar estado salvo (se existir)
-  const restaurou = restaurarEstado();
-  calcular();
-
-  // Indicar se havia estado salvo
-  if (restaurou) {
-    showFlash('✅ Continuando de onde você parou', 3000);
-  }
-}
-
-// ── Bootstrap ─────────────────────────────────────────────────────────────────
-async function init() {
-  const hash = location.hash.replace(/^#/,'');
-  if (!hash) {
-    document.getElementById('app').innerHTML = `
-      <div class="erro-box">
-        <h2>Maleta não encontrada</h2>
-        <p>Este link não contém dados de maleta.<br>
-           Solicite um novo link à loja.</p>
-      </div>`;
-    return;
-  }
-  try {
-    const json = await decompress(hash);
-    const data = JSON.parse(json);
-    renderApp(data);
-  } catch(e) {
-    // Tentar sem descompressão (link legado)
-    try {
-      const json = atob(hash.replace(/-/g,'+').replace(/_/g,'/'));
-      renderApp(JSON.parse(json));
-    } catch(e2) {
-      document.getElementById('app').innerHTML = `
-        <div class="erro-box">
-          <h2>Erro ao carregar maleta</h2>
-          <p>O link pode estar corrompido.<br>Solicite um novo link à loja.</p>
-          <p style="font-size:11px;color:#aaa;margin-top:10px">${e.message}</p>
-        </div>`;
-    }
-  }
-}
-
-init();
+window.addEventListener('DOMContentLoaded',()=>{try{render();restoreState()}catch(e){document.getElementById('app').innerHTML=`<div class="err"><h2>Não consegui abrir esta maleta</h2><p>${escapeHtml(e.message)}</p></div>`}});
 </script>
 </body>
 </html>
